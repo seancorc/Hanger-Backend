@@ -20,7 +20,7 @@ with app.app_context():
 def helloworld():
         return "Hello World!"
 
-@app.route('/api/user/', methods=['POST'])
+@app.route('/api/user/signup/', methods=['POST'])
 def createUser():
         postBody = json.loads(request.data)
         email = postBody['email']
@@ -33,6 +33,16 @@ def createUser():
         db.session.commit()
         res = {'success': True, 'data': user.serialize()}
         return json.dumps(res), 201
+
+@app.route('/api/user/login/', methods=['POST'])
+def login():
+        postBody = json.loads(request.data)
+        email = postBody['email']
+        password = postBody['password']
+        user = User.query.filter_by(email=email, password=password).first()
+        res = {'success': False, 'error': "User not found"} if user is None else {'success': True, 'data': user.serialize()}
+        return json.dumps(res), 200 if res['success'] else 401
+
 
 @app.route('/api/users/')
 def getAllUsers():

@@ -26,7 +26,7 @@ class User(db.Model):
             'password': self.password,
             'username': self.username,
             'latitude': self.latitude,
-            'longitutde': self.longitude
+            'longitude': self.longitude
         }
 
     
