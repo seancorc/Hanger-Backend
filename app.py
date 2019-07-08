@@ -1,6 +1,7 @@
 import json
 from flask import Flask, request
 from db import db, User
+from sqlalchemy import or_
 
 
 app = Flask(__name__)
@@ -28,11 +29,15 @@ def createUser():
         username = postBody['username']
         latitude = postBody['latitude']
         longitude = postBody['longitude']
-        user = User(email = email, password = password, username = username, latitude = latitude, longitude = longitude)
-        db.session.add(user)
-        db.session.commit()
-        res = {'success': True, 'data': user.serialize()}
-        return json.dumps(res), 201
+        possibleUser = User.query.filter(or_(User.email==email, User.username==username)).first()
+        if not (possibleUser is None):
+                res = {'success': False, 'error': "User with that email or username already exists"}
+        else:
+                user = User(email = email, password = password, username = username, latitude = latitude, longitude = longitude)
+                db.session.add(user)
+                db.session.commit()
+                res = {'success': True, 'data': user.serialize()}
+        return json.dumps(res), 201 if res['success'] else 401
 
 @app.route('/api/user/login/', methods=['POST'])
 def login():
