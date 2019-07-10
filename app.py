@@ -27,13 +27,11 @@ def createUser():
         email = postBody['email']
         password = postBody['password']
         username = postBody['username']
-        latitude = postBody['latitude']
-        longitude = postBody['longitude']
         possibleUser = User.query.filter(or_(User.email==email, User.username==username)).first()
         if not (possibleUser is None):
                 res = {'success': False, 'error': "User with that email or username already exists"}
         else:
-                user = User(email = email, password = password, username = username, latitude = latitude, longitude = longitude)
+                user = User(email = email, password = password, username = username)
                 db.session.add(user)
                 db.session.commit()
                 res = {'success': True, 'data': user.serialize()}
