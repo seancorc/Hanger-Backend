@@ -35,7 +35,7 @@ def createUser():
                 db.session.add(user)
                 db.session.commit()
                 res = {'success': True, 'data': user.serialize()}
-        return json.dumps(res), 201 if res['success'] else 401
+        return json.dumps(res), 201 if res['success'] else 400
 
 @app.route('/api/user/login/', methods=['POST'])
 def login():
@@ -44,7 +44,24 @@ def login():
         password = postBody['password']
         user = User.query.filter_by(email=email, password=password).first()
         res = {'success': False, 'error': "User not found"} if user is None else {'success': True, 'data': user.serialize()}
-        return json.dumps(res), 200 if res['success'] else 401
+        return json.dumps(res), 200 if res['success'] else 400
+
+@app.route('/api/user/updateinfo/', methods=['POST'])
+def updateUserInfo():
+        postBody = json.loads(request.data)
+        previousEmail = postBody['previousEmail']
+        newEmail = postBody['newEmail']
+        previousUsername = postBody['previousUsername']
+        newUsername = postBody['newUsername']
+        user = User.query.filter_by(email=previousEmail, username=previousUsername).first()
+        if user is None:
+                res = {'success': False, 'error': "User does not exist"}
+        else:
+                user.email = newEmail
+                user.username = newUsername
+                db.session.commit()
+                res = {'success': True, 'data': user.serialize()}
+        return json.dumps(res), 200 if res['success'] else 400
 
 
 @app.route('/api/users/')
