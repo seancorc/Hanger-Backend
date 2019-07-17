@@ -23,28 +23,41 @@ def helloworld():
 
 @app.route('/api/user/signup/', methods=['POST'])
 def createUser():
+        statuscode = 500
         postBody = json.loads(request.data)
         email = postBody['email']
         password = postBody['password']
         username = postBody['username']
-        possibleUser = User.query.filter(or_(User.email==email, User.username==username)).first()
-        if not (possibleUser is None):
-                res = {'success': False, 'error': "User with that email or username already exists"}
+        possibleUserWithEmail = User.query.filter_by(email=email).first()
+        possibleUserWithUsername = User.query.filter_by(username=username).first()
+        if not (possibleUserWithEmail is None):
+                res = {'success': False, 'error': "User with that email already exists"}
+                statuscode = 401
+        elif not (possibleUserWithUsername is None):
+                res = {'success': False, 'error': "User with that username already exists"}
+                statuscode = 402
         else:
                 user = User(email = email, password = password, username = username)
                 db.session.add(user)
                 db.session.commit()
                 res = {'success': True, 'data': user.serialize()}
-        return json.dumps(res), 201 if res['success'] else 400
+                statuscode = 201
+        return json.dumps(res), statuscode
 
 @app.route('/api/user/login/', methods=['POST'])
 def login():
+        statuscode = 500
         postBody = json.loads(request.data)
         email = postBody['email']
         password = postBody['password']
         user = User.query.filter_by(email=email, password=password).first()
-        res = {'success': False, 'error': "User not found"} if user is None else {'success': True, 'data': user.serialize()}
-        return json.dumps(res), 200 if res['success'] else 400
+        if user is None:
+                res = {'success': False, 'error': "User not found"} 
+                statuscode = 400 
+        else: 
+                res = {'success': True, 'data': user.serialize()}
+                statuscode = 200
+        return json.dumps(res), statuscode
 
 @app.route('/api/user/updateinfo/', methods=['POST'])
 def updateUserInfo():
