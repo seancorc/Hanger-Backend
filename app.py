@@ -1,7 +1,6 @@
 import json
 from flask import Flask, request
 from db import db, User
-from sqlalchemy import or_
 
 
 app = Flask(__name__)
@@ -44,7 +43,7 @@ def createUser():
                 statuscode = 201
         return json.dumps(res), statuscode
 
-@app.route('/api/user/login/', methods=['POST'])
+@app.route('/api/user/login/', methods=['PUT'])
 def login():
         statuscode = 500
         postBody = json.loads(request.data)
@@ -59,7 +58,7 @@ def login():
                 statuscode = 200
         return json.dumps(res), statuscode
 
-@app.route('/api/user/updateinfo/', methods=['POST'])
+@app.route('/api/user/updateinfo/', methods=['PUT'])
 def updateUserInfo():
         postBody = json.loads(request.data)
         previousEmail = postBody['previousEmail']
@@ -77,7 +76,7 @@ def updateUserInfo():
         return json.dumps(res), 200 if res['success'] else 400
 
 
-@app.route('/api/users/')
+@app.route('/api/users/', methods=['GET'])
 def getAllUsers():
     allUsers = User.query.all()
     res = {'success': True, 'data': [
