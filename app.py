@@ -77,6 +77,28 @@ def updateUserInfo():
                 res = {'data': user.serialize()}
         return json.dumps(res), statuscode
 
+@app.route('/api/user/updatepassword/', methods=['PUT'])
+def updatePassword():
+        statuscode = 500
+        postBody = json.loads(request.data)
+        userID = postBody['userID']
+        currentPassword = postBody['currentPassword']
+        newPassword = postBody['newPassword']
+        user = User.query.filter_by(id=userID).first()
+        if user is None:
+                res = {'error': "User does not exist"}
+                statuscode = 400
+        else:
+                if not user.verifyPassword(currentPassword):
+                        res = {'error': "Incorrect Password"}
+                        statuscode = 400
+                else:
+                        user.hashAndSetPassword(newPassword)
+                        db.session.commit()
+                        res = {'success': True}
+                        statuscode = 200
+        return json.dumps(res), statuscode
+
 @app.route('/api/users/', methods=['GET']) #For Development Only
 def getAllUsers():
     allUsers = User.query.all()
