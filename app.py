@@ -5,8 +5,8 @@ from db import db, User
 
 app = Flask(__name__)
 
-db_filename = 'Hung.db'
-
+#TODO: Move from sqlite to PostgreSQL 
+db_filename = 'Testing.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % db_filename
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
@@ -30,20 +30,20 @@ def createUser():
         possibleUserWithEmail = User.query.filter_by(email=email).first()
         possibleUserWithUsername = User.query.filter_by(username=username).first()
         if not (possibleUserWithEmail is None):
-                res = {'success': False, 'error': "User with that email already exists"}
+                res = {'error': "User with that email already exists"}
                 statuscode = 401
         elif not (possibleUserWithUsername is None):
-                res = {'success': False, 'error': "User with that username already exists"}
-                statuscode = 402
+                res = {'error': "User with that username already exists"}
+                statuscode = 401
         else:
                 user = User(email = email, password = password, username = username)
                 db.session.add(user)
                 db.session.commit()
-                res = {'success': True, 'data': user.serialize()}
+                res = {'data': user.serialize()}
                 statuscode = 201
         return json.dumps(res), statuscode
 
-@app.route('/api/user/login/', methods=['PUT'])
+@app.route('/api/user/login/', methods=['POST'])
 def login():
         statuscode = 500
         postBody = json.loads(request.data)
@@ -51,35 +51,35 @@ def login():
         password = postBody['password']
         user = User.query.filter_by(email=email, password=password).first()
         if user is None:
-                res = {'success': False, 'error': "User not found"} 
+                res = {'error': "Incorrect Email/Password Combo"} 
                 statuscode = 400 
         else: 
-                res = {'success': True, 'data': user.serialize()}
+                res = {'data': user.serialize()}
                 statuscode = 200
         return json.dumps(res), statuscode
 
 @app.route('/api/user/updateinfo/', methods=['PUT'])
 def updateUserInfo():
+        statuscode = 500
         postBody = json.loads(request.data)
-        previousEmail = postBody['previousEmail']
+        userID = postBody['id']
         newEmail = postBody['newEmail']
-        previousUsername = postBody['previousUsername']
         newUsername = postBody['newUsername']
-        user = User.query.filter_by(email=previousEmail, username=previousUsername).first()
+        user = User.query.filter_by(id=userID).first()
         if user is None:
-                res = {'success': False, 'error': "User does not exist"}
+                res = {'error': "User does not exist"}
+                statuscode = 400
         else:
                 user.email = newEmail
                 user.username = newUsername
                 db.session.commit()
-                res = {'success': True, 'data': user.serialize()}
+                res = {'data': user.serialize()}
         return json.dumps(res), 200 if res['success'] else 400
-
 
 @app.route('/api/users/', methods=['GET'])
 def getAllUsers():
     allUsers = User.query.all()
-    res = {'success': True, 'data': [
+    res = {'data': [
         user.serialize() for user in allUsers]}
     return json.dumps(res), 200
 
