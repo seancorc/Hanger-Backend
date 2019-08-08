@@ -1,6 +1,10 @@
 import json
 from flask import Flask, request
 from db import db, User
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
 
 
 app = Flask(__name__)
@@ -10,11 +14,19 @@ db_filename = 'Testing.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % db_filename
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
+app.config['JWT_SECRET_KEY'] = '70875BF7FCAA71C5549281E98A481EC6839A6A127876BAA6920A0C6C8B1F3E08' 
+jwt = JWTManager(app)
 
 db.init_app(app)
 with app.app_context():
         db.create_all()
 
+
+
+@jwt.unauthorized_loader
+def noAccessToken(callback):
+        return json.dumps({'error': 'Unauthorized Access'}), 401
+        
 
 @app.route('/api/user/signup/', methods=['POST'])
 def createUser():
@@ -36,7 +48,7 @@ def createUser():
                 user.hashAndSetPassword(password)
                 db.session.add(user)
                 db.session.commit()
-                res = {'data': user.serialize()}
+                res = {'data': user.serialize(), 'accessToken': accessToken}
                 statuscode = 201
         return json.dumps(res), statuscode
 
@@ -54,22 +66,24 @@ def login():
                 res = {'error': 'Incorrect Password'}
                 statuscode = 400
         else: 
-                res = {'data': user.serialize()}
+                accessToken = create_access_token(identity=email) #implement expires functionality at some point
+                res = {'data': user.serialize(), 'accessToken': accessToken}
                 statuscode = 200
         return json.dumps(res), statuscode
 
 @app.route('/api/user/updateinfo/', methods=['PUT'])
+@jwt_required
 def updateUserInfo():
         statuscode = 500
-        postBody = json.loads(request.data)
-        userID = postBody['userID']
-        newEmail = postBody['newEmail']
-        newUsername = postBody['newUsername']
-        user = User.query.filter_by(id=userID).first()
+        email = get_jwt_identity()
+        user = User.query.filter_by(email=email).first()
         if user is None:
                 res = {'error': "User does not exist"}
                 statuscode = 400
         else:
+                postBody = json.loads(request.data)
+                newEmail = postBody['newEmail']
+                newUsername = postBody['newUsername']
                 user.email = newEmail
                 user.username = newUsername
                 db.session.commit()
@@ -78,17 +92,19 @@ def updateUserInfo():
         return json.dumps(res), statuscode
 
 @app.route('/api/user/updatepassword/', methods=['PUT'])
+@jwt_required
 def updatePassword():
         statuscode = 500
-        postBody = json.loads(request.data)
-        userID = postBody['userID']
-        currentPassword = postBody['currentPassword']
-        newPassword = postBody['newPassword']
-        user = User.query.filter_by(id=userID).first()
+        email = get_jwt_identity()
+        print(email)
+        user = User.query.filter_by(email=email).first()
         if user is None:
                 res = {'error': "User does not exist"}
                 statuscode = 400
         else:
+                postBody = json.loads(request.data)
+                currentPassword = postBody['currentPassword']
+                newPassword = postBody['newPassword']
                 if not user.verifyPassword(currentPassword):
                         res = {'error': "Incorrect Password"}
                         statuscode = 400
