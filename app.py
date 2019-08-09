@@ -1,6 +1,6 @@
 import json
 from flask import Flask, request
-from db import db, User
+from db import db, User, Post
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity
@@ -22,10 +22,14 @@ with app.app_context():
         db.create_all()
 
 
-
+#TODO Learn blueprints and split up python file
 @jwt.unauthorized_loader
 def noAccessToken(callback):
         return json.dumps({'error': 'Unauthorized Access'}), 401
+
+@jwt.expired_token_loader
+def my_expired_token_callback(expired_token):
+    return json.dumps({'error': 'Expired Access'}), 401
         
 
 @app.route('/api/user/signup/', methods=['POST'])
@@ -48,6 +52,7 @@ def createUser():
                 user.hashAndSetPassword(password)
                 db.session.add(user)
                 db.session.commit()
+                accessToken = create_access_token(identity=email, expires_delta=False) #implement expires functionality at some point
                 res = {'data': user.serialize(), 'accessToken': accessToken}
                 statuscode = 201
         return json.dumps(res), statuscode
@@ -66,7 +71,7 @@ def login():
                 res = {'error': 'Incorrect Password'}
                 statuscode = 400
         else: 
-                accessToken = create_access_token(identity=email) #implement expires functionality at some point
+                accessToken = create_access_token(identity=email, expires_delta=False) #implement expires functionality at some point
                 res = {'data': user.serialize(), 'accessToken': accessToken}
                 statuscode = 200
         return json.dumps(res), statuscode
