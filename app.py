@@ -52,7 +52,7 @@ def createUser():
                 user.hashAndSetPassword(password)
                 db.session.add(user)
                 db.session.commit()
-                accessToken = create_access_token(identity=email, expires_delta=False) #implement expires functionality at some point
+                accessToken = create_access_token(identity=user.id, expires_delta=False) #implement expires functionality at some point
                 res = {'data': user.serialize(), 'accessToken': accessToken}
                 statuscode = 201
         return json.dumps(res), statuscode
@@ -71,7 +71,7 @@ def login():
                 res = {'error': 'Incorrect Password'}
                 statuscode = 400
         else: 
-                accessToken = create_access_token(identity=email, expires_delta=False) #implement expires functionality at some point
+                accessToken = create_access_token(identity=user.id, expires_delta=False) #implement expires functionality at some point
                 res = {'data': user.serialize(), 'accessToken': accessToken}
                 statuscode = 200
         return json.dumps(res), statuscode
@@ -80,8 +80,8 @@ def login():
 @jwt_required
 def updateUserInfo():
         statuscode = 500
-        email = get_jwt_identity()
-        user = User.query.filter_by(email=email).first()
+        userID = get_jwt_identity()
+        user = User.query.filter_by(id=userID).first()
         if user is None:
                 res = {'error': "User does not exist"}
                 statuscode = 400
@@ -100,9 +100,8 @@ def updateUserInfo():
 @jwt_required
 def updatePassword():
         statuscode = 500
-        email = get_jwt_identity()
-        print(email)
-        user = User.query.filter_by(email=email).first()
+        userID = get_jwt_identity()
+        user = User.query.filter_by(id=userID).first()
         if user is None:
                 res = {'error': "User does not exist"}
                 statuscode = 400
@@ -126,6 +125,30 @@ def getAllUsers():
     res = {'data': [
         user.serialize() for user in allUsers]}
     return json.dumps(res), 200
+
+@app.route('/api/post/', methods=['POST'])
+@jwt_required
+def createPost():
+        userID = get_jwt_identity()
+        postBody = json.loads(request.data)
+        clothingType = postBody['clothingType']
+        category = postBody['category']
+        name = postBody['name']
+        brand = postBody['brand']
+        price = postBody['price']
+        description = postBody['description']
+        post = Post(clothingType=clothingType, category=category, name=name, brand=brand, price=price, description=description, userID=userID)
+        db.session.add(post)
+        db.session.commit()
+        res = {'data': post.serialize()}
+        return json.dumps(res), 201
+
+        
+@app.route('/api/posts/', methods=['GET'])
+def getAllPosts():
+     allPost = Post.query.all()
+     res = {'data': [post.serialize() for post in allPost]}
+     return json.dumps(res), 200
 
 
 if __name__ == '__main__':

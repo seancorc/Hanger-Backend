@@ -10,7 +10,7 @@ class User(db.Model):
     email = db.Column(db.String, nullable=False)
     passwordHash = db.Column(db.String, nullable=False)
     username = db.Column(db.String, nullable=False)
-    posts = relationship('post', back_populates='user')
+    posts = db.relationship('Post', back_populates='user')
 
     def __init__(self, **kwargs):
         self.email = kwargs.get('email', '')
@@ -21,6 +21,14 @@ class User(db.Model):
             'id': self.id,
             'email': self.email,
             'username': self.username,
+            'posts': [post.subSerialize() for post in self.posts]
+        }
+
+    def subSerialize(self):
+        return {
+        'id': self.id,
+        'email': self.email,
+        'username': self.username
         }
 
     def hashAndSetPassword(self, password):
@@ -40,6 +48,7 @@ class Post(db.Model):
     price = db.Column(db.Float, nullable=False)
     description = db.Column(db.String, nullable=True)
     userID = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User', back_populates='posts')
 
     def __init__(self, **kwargs):
         self.clothingType = kwargs.get('clothingType', '')
@@ -58,9 +67,18 @@ class Post(db.Model):
             'brand': self.brand,
             'price': self.price,
             'description': self.description,
-            'userID': self.userID
+            'user': self.user.subSerialize()
         }
         
+    def subSerialize(self):
+        return {
+            'id': self.id,
+            'category': self.category,
+            'name': self.name,
+            'brand': self.brand,
+            'price': self.price,
+            'description': self.description
+        }
 
 
 
