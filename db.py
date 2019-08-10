@@ -10,6 +10,7 @@ class User(db.Model):
     email = db.Column(db.String, nullable=False)
     passwordHash = db.Column(db.String, nullable=False)
     username = db.Column(db.String, nullable=False)
+    profilePictureURL = db.Column(db.String, nullable=True)
     posts = db.relationship('Post', back_populates='user')
 
     def __init__(self, **kwargs):
@@ -21,6 +22,7 @@ class User(db.Model):
             'id': self.id,
             'email': self.email,
             'username': self.username,
+            'profilePictureURL': self.profilePictureURL,
             'posts': [post.subSerialize() for post in self.posts]
         }
 
@@ -28,7 +30,8 @@ class User(db.Model):
         return {
         'id': self.id,
         'email': self.email,
-        'username': self.username
+        'username': self.username,
+        'profilePictureURL': self.profilePictureURL
         }
 
     def hashAndSetPassword(self, password):
@@ -47,6 +50,7 @@ class Post(db.Model):
     brand = db.Column(db.String, nullable=False)
     price = db.Column(db.Float, nullable=False)
     description = db.Column(db.String, nullable=True)
+    imageURLS = db.relationship('ImageURL', back_populates='post')
     userID = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', back_populates='posts')
 
@@ -81,6 +85,13 @@ class Post(db.Model):
         }
 
 
-
-
+class ImageURL(db.Model):
+    __tablename__ = 'imageURL'
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String, nullable=False)
+    post = db.relationship('Post', back_populates='imageURLS')
+    postID = db.Column(db.Integer, db.ForeignKey('post.id'))
     
+    def __init__(self, **kwargs):
+        self.url = kwargs.get('url', '')
+        self.postID = kwargs.get('postID')

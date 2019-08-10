@@ -119,6 +119,25 @@ def updatePassword():
                         statuscode = 200
         return json.dumps(res), statuscode
 
+@app.route('/api/user/profilepicture/', methods=['PUT'])
+@jwt_required
+def modifyProfilepicture():
+        statuscode = 500
+        userID = get_jwt_identity()
+        user = User.query.filter_by(id=userID).first()
+        if user is None:
+                res = {'error': "User does not exist"}
+                statuscode = 400
+        else:
+                postBody = json.loads(request.data)
+                url = postBody['url']
+                user.profilePictureURL = url
+                db.session.commit()
+                res = {'success': True}
+                statuscode = 200
+        return json.dumps(res), statuscode
+        
+
 @app.route('/api/users/', methods=['GET']) #For Development Only
 def getAllUsers():
     allUsers = User.query.all()
@@ -126,7 +145,7 @@ def getAllUsers():
         user.serialize() for user in allUsers]}
     return json.dumps(res), 200
 
-@app.route('/api/post/', methods=['POST'])
+@app.route('/api/post/create/', methods=['POST'])
 @jwt_required
 def createPost():
         userID = get_jwt_identity()
