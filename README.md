@@ -92,7 +92,7 @@
 *Successful Response (200)*:
 ```json
 {
-    'success': True
+    "success": "True"
 }	
 ```
 
@@ -112,7 +112,7 @@
 *Successful Response (200)*:
 ```json
 {
-    'success': True
+    "success": "True"
 }	
 ```
 
@@ -190,7 +190,6 @@
 		"description": "String or None",
 		"imageURLs": "[String]"
      }
-     ...
     ]
 }
 ```
