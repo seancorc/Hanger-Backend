@@ -1,6 +1,6 @@
 import json
 from flask import Flask, request
-from db import db, User, Post
+from db import db, User, Post, ImageURL
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity
@@ -14,7 +14,7 @@ db_filename = 'Testing.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % db_filename
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
-app.config['JWT_SECRET_KEY'] = '70875BF7FCAA71C5549281E98A481EC6839A6A127876BAA6920A0C6C8B1F3E08' 
+app.config['JWT_SECRET_KEY'] = '70875BF7FCAA71C5549281E98A481EC6839A6A127876BAA6920A0C6C8B1F3E08' #CHANGE FOR PRODUCTION 
 jwt = JWTManager(app)
 
 db.init_app(app)
@@ -156,14 +156,20 @@ def createPost():
         brand = postBody['brand']
         price = postBody['price']
         description = postBody['description']
+        imageURLs = postBody['imageURLs']
         post = Post(clothingType=clothingType, category=category, name=name, brand=brand, price=price, description=description, userID=userID)
         db.session.add(post)
         db.session.commit()
+        for url in imageURLs:
+                imageURL = ImageURL(url=url, postID=post.id)
+                db.session.add(imageURL)
+        db.session.commit()
         res = {'data': post.serialize()}
+        print(res)
         return json.dumps(res), 201
 
         
-@app.route('/api/posts/', methods=['GET'])
+@app.route('/api/posts/', methods=['GET']) #For Development Only
 def getAllPosts():
      allPost = Post.query.all()
      res = {'data': [post.serialize() for post in allPost]}

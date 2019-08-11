@@ -48,9 +48,9 @@ class Post(db.Model):
     category = db.Column(db.String, nullable=False)
     name = db.Column(db.String, nullable=False)
     brand = db.Column(db.String, nullable=False)
-    price = db.Column(db.Float, nullable=False)
+    price = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=True)
-    imageURLS = db.relationship('ImageURL', back_populates='post')
+    imageURLs = db.relationship('ImageURL', back_populates='post')
     userID = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', back_populates='posts')
 
@@ -66,12 +66,14 @@ class Post(db.Model):
     def serialize(self):
         return {
             'id': self.id,
+            'clothingType': self.clothingType,
             'category': self.category,
             'name': self.name,
             'brand': self.brand,
             'price': self.price,
             'description': self.description,
-            'user': self.user.subSerialize()
+            'user': self.user.subSerialize(),
+            'imageURLs': [imageURL.urlString() for imageURL in self.imageURLs]
         }
         
     def subSerialize(self):
@@ -89,9 +91,12 @@ class ImageURL(db.Model):
     __tablename__ = 'imageURL'
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String, nullable=False)
-    post = db.relationship('Post', back_populates='imageURLS')
+    post = db.relationship('Post', back_populates='imageURLs')
     postID = db.Column(db.Integer, db.ForeignKey('post.id'))
     
     def __init__(self, **kwargs):
         self.url = kwargs.get('url', '')
         self.postID = kwargs.get('postID')
+
+    def urlString(self):
+        return self.url
