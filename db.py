@@ -83,7 +83,8 @@ class Post(db.Model):
             'name': self.name,
             'brand': self.brand,
             'price': self.price,
-            'description': self.description
+            'description': self.description,
+            'imageURLs': [imageURL.urlString() for imageURL in self.imageURLs]
         }
 
 

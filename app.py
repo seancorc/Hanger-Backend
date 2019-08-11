@@ -1,4 +1,5 @@
 import json
+import config
 from flask import Flask, request
 from db import db, User, Post, ImageURL
 from flask_jwt_extended import (
@@ -14,7 +15,7 @@ db_filename = 'Testing.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % db_filename
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
-app.config['JWT_SECRET_KEY'] = '70875BF7FCAA71C5549281E98A481EC6839A6A127876BAA6920A0C6C8B1F3E08' #CHANGE FOR PRODUCTION 
+app.config['JWT_SECRET_KEY'] = config.SECRET_KEY
 jwt = JWTManager(app)
 
 db.init_app(app)
@@ -168,6 +169,19 @@ def createPost():
         print(res)
         return json.dumps(res), 201
 
+@app.route('/api/user/posts/', methods=['GET'])
+@jwt_required
+def getPostsForUser():
+        statuscode = 500
+        userID = get_jwt_identity()
+        user = User.query.filter_by(id=userID).first()
+        if user is None:
+                res = {'error': "User does not exist"}
+                statuscode = 400
+        else:
+                res = {'data': [post.subSerialize() for post in user.posts]}
+                statuscode = 200
+        return json.dumps(res), statuscode
         
 @app.route('/api/posts/', methods=['GET']) #For Development Only
 def getAllPosts():
