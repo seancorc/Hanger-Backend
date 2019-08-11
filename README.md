@@ -1,28 +1,196 @@
 ## API Spec
 
-### /api/user/signup/ 
-**Method** = POST  
+### User:
+
+#### POST /api/user/signup/   
 *Body*:  
 ```json
 {
-	"email": String,
-	"password": String,
-	"username": String
-}  
-*Response*
+	"email": "String",
+	"password": "String",
+	"username": "String"
+} 
+```
+*Successful Response (201)*:
 ```json
 {
     "data": {
-        "id": Int,
-        "email": String,
-        "username": String,
-        "profilePictureURL": String,
-        "posts": Array<Post>
+        "id": "Int",
+        "email": "String",
+        "username": "String",
+        "profilePictureURL": "String or None",
+        "posts": "Array<Post>"
     },
-    "accessToken": String
+    "accessToken": "String"
+}	
+```
+
+#### POST /api/user/login/   
+*Body*:  
+```json
+{
+	"email": "String",
+	"password": "String",
+} 
+```
+*Successful Response (200)*:
+```json
+{
+    "data": {
+        "id": "Int",
+        "email": "String",
+        "username": "String",
+        "profilePictureURL": "String or None",
+        "posts": "Array<Post>"
+    },
+    "accessToken": "String"
+}	
+```
+
+#### PUT /api/user/updateinfo/   
+*Headers*: 
+```json
+{
+	"Authorization": "Bearer accessToken"
 }
-		
+```
+*Body*:  
+```json
+{
+	"newEmail": "String",
+	"newUsername": "String",
+} 
+```
+*Successful Response (200)*:
+```json
+{
+    "data": {
+        "id": "Int",
+        "email": "String",
+        "username": "String",
+        "profilePictureURL": "String or None",
+        "posts": "Array<Post>"
+    }
+}	
 ```
 
 
+#### PUT /api/user/updatepassword/   
+*Headers*: 
+```json
+{
+	"Authorization": "Bearer accessToken"
+}
+```
+*Body*:  
+```json
+{
+	"currentPassword": "String",
+	"newPassword": "String",
+} 
+```
+*Successful Response (200)*:
+```json
+{
+    'success': True
+}	
+```
 
+#### PUT /api/user/profilepicture/   
+*Headers*: 
+```json
+{
+	"Authorization": "Bearer accessToken"
+}
+```
+*Body*:  
+```json
+{
+	"url": "String",
+} 
+```
+*Successful Response (200)*:
+```json
+{
+    'success': True
+}	
+```
+
+### Selling and Buying Clothes
+
+#### POST /api/post/create/   
+*Headers*: 
+```json
+{
+	"Authorization": "Bearer accessToken"
+}
+```
+*Body*:  
+```json
+{
+	"clothingType": "String",
+	"category": "String",
+	"name": "String",
+	"brand": "String",
+	"price": "String",
+	"description": "String or None",
+	"imageURLs": "[String]"
+}
+```
+*Successful Response (201)*:
+```json
+{
+    "data": {
+        "id": "Int",
+ 		"clothingType":"String",
+		"category":" String",
+		"name":" String",
+		"brand": "String",
+		"price": "String",
+		"description": "String or None",
+        "user": {
+            "id": "Int",
+            "email": "String",
+            "username": "String",
+            "profilePictureURL": "String or None"
+        },
+		"imageURLs": "[String]"
+    }
+}	
+```
+
+#### /api/user/posts/
+*Headers*: 
+```json
+{
+	"Authorization": "Bearer accessToken"
+}
+```
+*Successful Response (201)*:  
+```json
+{
+    "data": [
+    {
+        "id": "Int",
+ 		"clothingType":"String",
+		"category":" String",
+		"name":" String",
+		"brand": "String",
+		"price": "String",
+		"description": "String or None",
+		"imageURLs": "[String]"
+     },
+     {
+     	"id": "Int",
+ 		"clothingType":"String",
+		"category":" String",
+		"name":" String",
+		"brand": "String",
+		"price": "String",
+		"description": "String or None",
+		"imageURLs": "[String]"
+     }
+     ...
+    ]
+}
+```
