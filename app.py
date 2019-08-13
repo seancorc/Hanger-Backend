@@ -46,7 +46,7 @@ def getAllPosts():
 
 @app.route('/api/post/create/', methods=['POST'])
 @jwt_required
-def createPost():
+def createPost(): #TODO: ADD POINT WHEN POST IS CREATED
         userID = get_jwt_identity()
         postBody = json.loads(request.data)
         clothingType = postBody['clothingType']
@@ -57,7 +57,6 @@ def createPost():
         description = postBody['description']
         imageURLs = postBody['imageURLs']
         post = Post(clothingType=clothingType, category=category, name=name, brand=brand, price=price, description=description, userID=userID)
-        post.point = WKTElement('POINT(50 4)', srid=4326)
         db.session.add(post)
         db.session.commit()
         for url in imageURLs:
@@ -67,20 +66,21 @@ def createPost():
         res = {'data': post.serialize()}
         return json.dumps(res), 201
 
-@app.route('/api/posts/nearby/<int:radius>/', methods=['GET'])
+@app.route('/api/posts/nearby', methods=['GET'])
 @jwt_required
-def getNearbyPosts(radius):
+def getNearbyPosts():
         #NOTE: POSTGIS COORDS ARE (LONG, LAT)
-        #TODO: MAKE SURE UNITS ARE CORRECT 
         statuscode = 500
+        print(request.args)
+        radius = float(request.args.get('radius'))
         userID = get_jwt_identity()
         user = User.query.filter_by(id=userID).first()
         if user is None:
                 res = {'error': "Incorrect Email"} 
                 statuscode = 400
         else:   
-                radius = radius * 5280
-                nearbyPosts = Post.query.filter(func.ST_DWithin(func.ST_Transform(Post.point, 2877), func.ST_Transform(user.point, 2877), radius))
+                radius = radius * 1609.34 #Converting to meters
+                nearbyPosts = Post.query.filter(func.ST_DistanceSphere(Post.point, user.point) <= radius)
                 res = {'data': [post.serialize() for post in nearbyPosts]}
                 statuscode = 200
         return json.dumps(res), statuscode

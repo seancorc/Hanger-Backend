@@ -25,9 +25,8 @@ def createUser():
                 res = {'error': "User with that username already exists"}
                 statuscode = 401
         else:
-                user = User(email=email, username=username) #Default lat long are LA
+                user = User(email=email, username=username)
                 user.hashAndSetPassword(password)
-                user.point = geoalchemy2.WKTElement('POINT(5 45)', srid=4326)
                 db.session.add(user)
                 db.session.commit()
                 accessToken = create_access_token(identity=user.id, expires_delta=False) #implement expires functionality at some point
@@ -58,7 +57,8 @@ def login():
 @jwt_required
 def updateUserLocation():
     statuscode = 500
-    user = User.query.filter_by(email=email).first()
+    userID = get_jwt_identity()
+    user = User.query.get(userID)
     if user is None:
             res = {'error': "Incorrect Email"} 
             statuscode = 400
@@ -66,8 +66,7 @@ def updateUserLocation():
         postBody = json.loads(request.data)
         lat = postBody['lat']
         longt = postBody['longt']
-        user.lat = lat
-        user.longt = longt
+        user.point = geoalchemy2.WKTElement('POINT({} {})'.format(longt, lat), srid=4326)
         db.session.commit()
         statuscode = 200
         res = {'data': user.serialize()}
