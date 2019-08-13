@@ -1,4 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
+from geoalchemy2.types import Geometry
+
+
 from passlib.apps import custom_app_context as pwd_context #Note: passlib hash functions automatically handle salting
 
 db = SQLAlchemy()
@@ -12,6 +15,7 @@ class User(db.Model):
     username = db.Column(db.String, nullable=False)
     profilePictureURL = db.Column(db.String, nullable=True)
     posts = db.relationship('Post', back_populates='user')
+    point = db.Column(Geometry(geometry_type='POINT', srid=4326))
 
     def __init__(self, **kwargs):
         self.email = kwargs.get('email', '')
@@ -53,6 +57,7 @@ class Post(db.Model):
     imageURLs = db.relationship('ImageURL', back_populates='post')
     userID = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', back_populates='posts')
+    point = db.Column(Geometry(geometry_type='POINT', srid=4326))
 
     def __init__(self, **kwargs):
         self.clothingType = kwargs.get('clothingType', '')
@@ -79,6 +84,7 @@ class Post(db.Model):
     def subSerialize(self):
         return {
             'id': self.id,
+            'clothingType': self.clothingType,
             'category': self.category,
             'name': self.name,
             'brand': self.brand,
