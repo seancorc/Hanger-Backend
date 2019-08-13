@@ -1,6 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from geoalchemy2.types import Geometry
-
+from geoalchemy2 import Geometry, func, shape
 
 from passlib.apps import custom_app_context as pwd_context #Note: passlib hash functions automatically handle salting
 
@@ -69,6 +68,7 @@ class Post(db.Model):
         self.userID = kwargs.get('userID', '')
 
     def serialize(self):
+        text = shape.to_shape(self.point).to_wkt()
         return {
             'id': self.id,
             'clothingType': self.clothingType,
@@ -78,8 +78,24 @@ class Post(db.Model):
             'price': self.price,
             'description': self.description,
             'user': self.user.subSerialize(),
-            'imageURLs': [imageURL.urlString() for imageURL in self.imageURLs]
+            'imageURLs': [imageURL.urlString() for imageURL in self.imageURLs],
+            'lat':  self.getLatFromText(text),
+            'long': self.getLongtFromText(text)
         }
+
+    def getLatFromText(self, text):
+        firstparenindex = text.index('(')
+        spaceindex = text.rindex(' ')
+        print(type(firstparenindex))
+        print(type(spaceindex))
+        lat = text[firstparenindex + 1:spaceindex]
+        return float(lat)
+    
+    def getLongtFromText(self, text):
+        spaceindex = text.rindex(' ')
+        lastparen = text.rindex(')')
+        longt = text[spaceindex + 1 : lastparen]
+        return float(longt)
         
     def subSerialize(self):
         return {

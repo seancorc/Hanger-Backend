@@ -9,8 +9,6 @@ from flask_jwt_extended import (
 )
 from geoalchemy2 import func, WKTElement
 
-
-
 app = Flask(__name__)
 app.register_blueprint(userAPI)
 
@@ -27,6 +25,35 @@ db.init_app(app)
 with app.app_context():
         db.create_all()
 
+def populateUser():
+        with app.app_context():
+                for i in range(1, 100):
+                        email = "Test{}@Test.com".format(i)
+                        username = "TestUser{}".format(i)
+                        password = "TestPass{}".format(i)
+                        user = User(email=email, username=username)
+                        user.passwordHash = password
+                        longt = 118.2437 + i/1000
+                        lat = 34.0522 + i/1000
+                        user.point = WKTElement('POINT({} {})'.format(longt, lat), srid=4326)
+                        db.session.add(user)
+                db.session.commit()
+
+#populateUser()
+
+def populatePost():
+        with app.app_context():
+                for i in range(1, 100):
+                        clothingType = "Male"
+                        category = "Workout"
+                        test = "Test{}".format(i)
+                        post = Post(clothingType=clothingType, category=category, name=test, brand=test, price=i, description=test, userID=i)
+                        longt = 118.2437 + i/1000
+                        lat = 34.0522 + i/1000
+                        post.point = WKTElement('POINT({} {})'.format(longt, lat), srid=4326)
+                        db.session.add(post)
+                db.session.commit()
+#populatePost()
 
 #TODO Learn blueprints and split up python file
 @jwt.unauthorized_loader
@@ -42,6 +69,7 @@ def my_expired_token_callback(expired_token):
 def getAllPosts():
      allPost = Post.query.all() 
      res = {'data': [post.serialize() for post in allPost]}
+     print(res)
      return json.dumps(res), 200
 
 @app.route('/api/post/create/', methods=['POST'])
@@ -76,7 +104,7 @@ def getNearbyPosts():
         userID = get_jwt_identity()
         user = User.query.filter_by(id=userID).first()
         if user is None:
-                res = {'error': "Incorrect Email"} 
+                res = {'error': "User Does Not Exist"} 
                 statuscode = 400
         else:   
                 radius = radius * 1609.34 #Converting to meters
