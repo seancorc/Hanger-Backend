@@ -89,7 +89,7 @@ class Post(db.Model):
     category = db.Column(db.String, nullable=False)
     name = db.Column(db.String, nullable=False)
     brand = db.Column(db.String, nullable=False)
-    price = db.Column(db.String, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String, nullable=True)
     imageURLs = db.relationship('ImageURL', back_populates='post')
     userID = db.Column(db.Integer, db.ForeignKey('user.id'))

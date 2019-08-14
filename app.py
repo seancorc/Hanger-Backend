@@ -34,8 +34,8 @@ def populateUser():
                         password = "TestPass{}".format(i)
                         user = User(email=email, username=username)
                         user.passwordHash = password
-                        longt = 33.80019 + i/1000
-                        lat = -118.390442 + i/1000
+                        lat = 33.80019 + i/1000
+                        longt = -118.390442 + i/1000
                         user.point = WKTElement('POINT({} {})'.format(longt, lat), srid=4326)
                         db.session.add(user)
                 db.session.commit()
@@ -49,8 +49,8 @@ def populatePost():
                         category = "Workout"
                         test = "Test{}".format(i)
                         post = Post(clothingType=clothingType, category=category, name=test, brand=test, price=i, description=test, userID=i)
-                        longt = 33.80019 + i/1000
-                        lat = -118.390442 + i/1000
+                        lat = 33.80019 + i/1000
+                        longt = -118.390442 + i/1000
                         post.point = WKTElement('POINT({} {})'.format(longt, lat), srid=4326)
                         db.session.add(post)
                         db.session.add(ImageURL(url='https://picsum.photos/id/500', postID=post.id))
