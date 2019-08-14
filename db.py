@@ -5,9 +5,9 @@ from passlib.apps import custom_app_context as pwd_context #Note: passlib hash f
 
 db = SQLAlchemy()
 
-def __getLatFromText__(text):
+def __getLongtFromText__(text):
     '''
-    Slices result of shape.to_shape(Point).to_wkt() and returns the latitude as a float
+    Slices result of shape.to_shape(Point).to_wkt() and returns the longtitude as a float
     (If there is an error while slicing or casting returns None)
     '''
     try:
@@ -18,9 +18,9 @@ def __getLatFromText__(text):
     except:
         return None
 
-def __getLongtFromText__(text):
+def __getLatFromText__(text):
     '''
-    Slices result of shape.to_shape(Point).to_wkt() and returns the longtitude as a float
+    Slices result of shape.to_shape(Point).to_wkt() and returns the latitude as a float
     (If there is an error while slicing or casting returns None)
     '''
     try:
@@ -121,7 +121,7 @@ class Post(db.Model):
             'user': self.user.subSerialize(),
             'imageURLs': [imageURL.urlString() for imageURL in self.imageURLs],
             'lat':  __getLatFromText__(text),
-            'long': __getLongtFromText__(text) 
+            'longt': __getLongtFromText__(text) 
         }
         
     def subSerialize(self):
@@ -139,7 +139,7 @@ class Post(db.Model):
             'description': self.description,
             'imageURLs': [imageURL.urlString() for imageURL in self.imageURLs],
             'lat':  __getLatFromText__(text),
-            'long': __getLongtFromText__(text) 
+            'longt': __getLongtFromText__(text) 
         }
 
 

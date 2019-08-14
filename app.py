@@ -7,6 +7,7 @@ from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity
 )
+from sqlalchemy.sql.expression import and_
 from geoalchemy2 import func, WKTElement
 
 app = Flask(__name__)
@@ -86,6 +87,8 @@ def createPost(): #TODO: ADD POINT WHEN POST IS CREATED
         description = postBody['description']
         imageURLs = postBody['imageURLs']
         post = Post(clothingType=clothingType, category=category, name=name, brand=brand, price=price, description=description, userID=userID)
+        user = User.query.get(userID)
+        post.point = user.point
         db.session.add(post)
         db.session.commit()
         for url in imageURLs:
@@ -108,7 +111,7 @@ def getNearbyPosts():
                 statuscode = 400
         else:   
                 radius = radius * 1609.34 #Converting to meters
-                nearbyPosts = Post.query.filter(func.ST_DistanceSphere(Post.point, user.point) <= radius)
+                nearbyPosts = Post.query.filter(and_(func.ST_DistanceSphere(Post.point, user.point) <= radius, Post.userID != userID))
                 res = {'data': [post.serialize() for post in nearbyPosts]}
                 statuscode = 200
         return json.dumps(res), statuscode
