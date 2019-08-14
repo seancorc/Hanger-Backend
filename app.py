@@ -33,8 +33,8 @@ def populateUser():
                         password = "TestPass{}".format(i)
                         user = User(email=email, username=username)
                         user.passwordHash = password
-                        longt = 118.2437 + i/1000
-                        lat = 34.0522 + i/1000
+                        longt = 33.80019 + i/1000
+                        lat = -118.390442 + i/1000
                         user.point = WKTElement('POINT({} {})'.format(longt, lat), srid=4326)
                         db.session.add(user)
                 db.session.commit()
@@ -48,10 +48,11 @@ def populatePost():
                         category = "Workout"
                         test = "Test{}".format(i)
                         post = Post(clothingType=clothingType, category=category, name=test, brand=test, price=i, description=test, userID=i)
-                        longt = 118.2437 + i/1000
-                        lat = 34.0522 + i/1000
+                        longt = 33.80019 + i/1000
+                        lat = -118.390442 + i/1000
                         post.point = WKTElement('POINT({} {})'.format(longt, lat), srid=4326)
                         db.session.add(post)
+                        db.session.add(ImageURL(url='https://picsum.photos/id/500', postID=post.id))
                 db.session.commit()
 #populatePost()
 
@@ -99,7 +100,6 @@ def createPost(): #TODO: ADD POINT WHEN POST IS CREATED
 def getNearbyPosts():
         #NOTE: POSTGIS COORDS ARE (LONG, LAT)
         statuscode = 500
-        print(request.args)
         radius = float(request.args.get('radius'))
         userID = get_jwt_identity()
         user = User.query.filter_by(id=userID).first()

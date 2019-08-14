@@ -70,6 +70,7 @@ def updateUserLocation():
         db.session.commit()
         statuscode = 200
         res = {'data': user.serialize()}
+        print(res)
     return json.dumps(res), statuscode
 
 

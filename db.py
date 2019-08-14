@@ -5,6 +5,31 @@ from passlib.apps import custom_app_context as pwd_context #Note: passlib hash f
 
 db = SQLAlchemy()
 
+def __getLatFromText__(text):
+    '''
+    Slices result of shape.to_shape(Point).to_wkt() and returns the latitude as a float
+    (If there is an error while slicing or casting returns None)
+    '''
+    try:
+        firstparenindex = text.index('(')
+        spaceindex = text.rindex(' ')
+        lat = text[firstparenindex + 1:spaceindex]
+        return float(lat)
+    except:
+        return None
+
+def __getLongtFromText__(text):
+    '''
+    Slices result of shape.to_shape(Point).to_wkt() and returns the longtitude as a float
+    (If there is an error while slicing or casting returns None)
+    '''
+    try:
+        spaceindex = text.rindex(' ')
+        lastparen = text.rindex(')')
+        longt = text[spaceindex + 1 : lastparen]
+        return float(longt)
+    except:
+        return None
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -21,21 +46,34 @@ class User(db.Model):
         self.username = kwargs.get('username', '')
 
     def serialize(self):
+        try:
+            text = shape.to_shape(self.point).to_wkt() #Turns point into a string 
+        except:
+            text = None
         return {
             'id': self.id,
             'email': self.email,
             'username': self.username,
             'profilePictureURL': self.profilePictureURL,
-            'posts': [post.subSerialize() for post in self.posts]
-        }
+            'posts': [post.subSerialize() for post in self.posts],
+            'lat':  __getLatFromText__(text=text),
+            'longt': __getLongtFromText__(text=text)
+            }
+
 
     def subSerialize(self):
+        try:
+            text = shape.to_shape(self.point).to_wkt() #Turns point into a string 
+        except:
+            text = None
         return {
-        'id': self.id,
-        'email': self.email,
-        'username': self.username,
-        'profilePictureURL': self.profilePictureURL
-        }
+            'id': self.id,
+            'email': self.email,
+            'username': self.username,
+            'profilePictureURL': self.profilePictureURL,
+            'lat':  __getLatFromText__(text),
+            'longt': __getLongtFromText__(text)
+            }
 
     def hashAndSetPassword(self, password):
         self.passwordHash = pwd_context.hash(password)
@@ -56,7 +94,7 @@ class Post(db.Model):
     imageURLs = db.relationship('ImageURL', back_populates='post')
     userID = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', back_populates='posts')
-    point = db.Column(Geometry(geometry_type='POINT', srid=4326), nullable=True)
+    point = db.Column(Geometry(geometry_type='POINT', srid=4326), nullable=False)
 
     def __init__(self, **kwargs):
         self.clothingType = kwargs.get('clothingType', '')
@@ -68,7 +106,10 @@ class Post(db.Model):
         self.userID = kwargs.get('userID', '')
 
     def serialize(self):
-        text = shape.to_shape(self.point).to_wkt()
+        try:
+            text = shape.to_shape(self.point).to_wkt() #Turns point into a string 
+        except:
+            text = None
         return {
             'id': self.id,
             'clothingType': self.clothingType,
@@ -79,25 +120,15 @@ class Post(db.Model):
             'description': self.description,
             'user': self.user.subSerialize(),
             'imageURLs': [imageURL.urlString() for imageURL in self.imageURLs],
-            'lat':  self.getLatFromText(text),
-            'long': self.getLongtFromText(text)
+            'lat':  __getLatFromText__(text),
+            'long': __getLongtFromText__(text) 
         }
-
-    def getLatFromText(self, text):
-        firstparenindex = text.index('(')
-        spaceindex = text.rindex(' ')
-        print(type(firstparenindex))
-        print(type(spaceindex))
-        lat = text[firstparenindex + 1:spaceindex]
-        return float(lat)
-    
-    def getLongtFromText(self, text):
-        spaceindex = text.rindex(' ')
-        lastparen = text.rindex(')')
-        longt = text[spaceindex + 1 : lastparen]
-        return float(longt)
         
     def subSerialize(self):
+        try:
+            text = shape.to_shape(self.point).to_wkt() #Turns point into a string 
+        except:
+            text = None
         return {
             'id': self.id,
             'clothingType': self.clothingType,
@@ -106,7 +137,9 @@ class Post(db.Model):
             'brand': self.brand,
             'price': self.price,
             'description': self.description,
-            'imageURLs': [imageURL.urlString() for imageURL in self.imageURLs]
+            'imageURLs': [imageURL.urlString() for imageURL in self.imageURLs],
+            'lat':  __getLatFromText__(text),
+            'long': __getLongtFromText__(text) 
         }
 
 
