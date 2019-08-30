@@ -1,5 +1,6 @@
 import json
 import config
+import random
 from flask import Flask, request
 from UserAPI import userAPI
 from db import db, User, Post, ImageURL
@@ -13,9 +14,6 @@ from geoalchemy2 import func, WKTElement
 app = Flask(__name__)
 app.register_blueprint(userAPI)
 
-#TODO: Move from sqlite to PostgreSQL 
-#db_filename = 'Testing.db'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % db_filename
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
@@ -48,7 +46,8 @@ def populatePost():
                         clothingType = "Male"
                         category = "Workout"
                         test = "Test{}".format(i)
-                        post = Post(clothingType=clothingType, category=category, name=test, brand=test, price=i, description=test, userID=i)
+                        post = Post(clothingType=clothingType, category=category, 
+                        name=test, brand=test, price=i, description=test, userID=i)
                         lat = 33.80019 + i/1000
                         longt = -118.390442 + i/1000
                         post.point = WKTElement('POINT({} {})'.format(longt, lat), srid=4326)
@@ -57,7 +56,6 @@ def populatePost():
                 db.session.commit()
 #populatePost()
 
-#TODO Learn blueprints and split up python file
 @jwt.unauthorized_loader
 def noAccessToken(callback):
         return json.dumps({'error': 'Unauthorized Access Token'}), 401
@@ -66,17 +64,10 @@ def noAccessToken(callback):
 def my_expired_token_callback(expired_token):
     return json.dumps({'error': 'Expired Access Token'}), 401
         
-        
-@app.route('/api/posts/', methods=['GET']) #For Development Only
-def getAllPosts():
-     allPost = Post.query.all() 
-     res = {'data': [post.serialize() for post in allPost]}
-     print(res)
-     return json.dumps(res), 200
 
 @app.route('/api/post/create/', methods=['POST'])
 @jwt_required
-def createPost(): #TODO: ADD POINT WHEN POST IS CREATED
+def createPost(): #TODO: ADD Custom Point When Post Is Created
         userID = get_jwt_identity()
         postBody = json.loads(request.data)
         clothingType = postBody['clothingType']
@@ -86,7 +77,8 @@ def createPost(): #TODO: ADD POINT WHEN POST IS CREATED
         price = postBody['price']
         description = postBody['description']
         imageURLs = postBody['imageURLs']
-        post = Post(clothingType=clothingType, category=category, name=name, brand=brand, price=price, description=description, userID=userID)
+        post = Post(clothingType=clothingType, category=category, name=name, 
+        brand=brand, price=price, description=description, userID=userID)
         user = User.query.get(userID)
         post.point = user.point
         db.session.add(post)
@@ -103,20 +95,30 @@ def createPost(): #TODO: ADD POINT WHEN POST IS CREATED
 def getNearbyPosts():
         #NOTE: POSTGIS COORDS ARE (LONG, LAT)
         statuscode = 500
-        radius = float(request.args.get('radius'))
+        radius = request.args.get('radius')
         userID = get_jwt_identity()
         user = User.query.filter_by(id=userID).first()
         if user is None:
                 res = {'error': "User Does Not Exist"} 
                 statuscode = 400
         else:   
-                radius = radius * 1609.34 #Converting to meters
-                nearbyPosts = Post.query.filter(and_(func.ST_DistanceSphere(Post.point, user.point) <= radius, Post.userID != userID))
-                res = {'data': [post.serialize() for post in nearbyPosts]}
                 statuscode = 200
-        return json.dumps(res), statuscode
+                if radius is None:
+                        res = __getAllPosts__()
+                        return json.dumps(res), statuscode
+                else:
+                        radius = float(radius) * 1609.34 #Converting to meters
+                        nearbyPosts = Post.query.filter(and_(func.ST_DistanceSphere(Post.point, user.point) <= radius, 
+                        Post.userID != userID))
+                        random.shuffle(nearbyPosts)
+                        res = {'data': [post.serialize() for post in nearbyPosts]}
+                        return json.dumps(res), statuscode
 
-
+def __getAllPosts__():
+     allPosts = Post.query.all() 
+     random.shuffle(allPosts)
+     res = {'data': [post.serialize() for post in allPosts]}
+     return res
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
