@@ -58,7 +58,7 @@
 ```json
 {
 	"newEmail": "String",
-	"newUsername": "String",
+	"newUsername": "String"
 } 
 ```
 *Successful Response (200)*:
@@ -86,7 +86,7 @@
 ```json
 {
 	"currentPassword": "String",
-	"newPassword": "String",
+	"newPassword": "String"
 } 
 ```
 *Successful Response (200)*:
@@ -106,13 +106,40 @@
 *Body*:  
 ```json
 {
-	"url": "String",
+	"url": "String"
 } 
 ```
 *Successful Response (200)*:
 ```json
 {
     "success": "True"
+}	
+```
+
+#### PUT /api/user/location/   
+*Headers*: 
+```json
+{
+	"Authorization": "Bearer accessToken"
+}
+```
+*Body*:  
+```json
+{
+	"lat": "Float",
+	"longt": "Float"
+} 
+```
+*Successful Response (200)*:
+```json
+{
+        "data": {
+        "id": "Int",
+        "email": "String",
+        "username": "String",
+        "profilePictureURL": "String or None",
+        "posts": "Array<Post>"
+    }
 }	
 ```
 
@@ -159,7 +186,7 @@
 }	
 ```
 
-#### /api/user/posts/
+#### GET /api/user/posts/
 *Headers*: 
 ```json
 {
