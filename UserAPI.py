@@ -86,11 +86,22 @@ def updateUserInfo():
                 postBody = json.loads(request.data)
                 newEmail = postBody['newEmail']
                 newUsername = postBody['newUsername']
-                user.email = newEmail
-                user.username = newUsername
-                db.session.commit()
-                statuscode = 200
-                res = {'data': user.serialize()}
+                possibleUserWithEmail = User.query.filter(User.id != userID).\
+                filter(User.email==newEmail).first()
+                possibleUserWithUsername = User.query.filter(User.id != userID).\
+                filter(User.username==newUsername).first()
+                if not (possibleUserWithEmail is None):
+                        res = {'error': "User with that email already exists"}
+                        statuscode = 401
+                elif not (possibleUserWithUsername is None):
+                        res = {'error': "User with that username already exists"}
+                        statuscode = 401
+                else:
+                        user.email = newEmail
+                        user.username = newUsername
+                        db.session.commit()
+                        statuscode = 200
+                        res = {'data': user.serialize()}
         return json.dumps(res), statuscode
 
 @userAPI.route('/api/user/updatepassword/', methods=['PUT'])

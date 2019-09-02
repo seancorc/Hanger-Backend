@@ -90,35 +90,40 @@ def createPost(): #TODO: ADD Custom Point When Post Is Created
         res = {'data': post.serialize()}
         return json.dumps(res), 201
 
-@app.route('/api/posts/nearby', methods=['GET'])
+@app.route('/api/posts/', methods=['GET'])
 @jwt_required
-def getNearbyPosts():
+def getPosts():
         #NOTE: POSTGIS COORDS ARE (LONG, LAT)
-        statuscode = 500
+        minPrice = request.args.get('minPrice')
+        maxPrice = request.args.get('maxPrice')
         radius = request.args.get('radius')
+        clothingTypes = request.args.get('type')
+        categories = request.args.get('category')
         userID = get_jwt_identity()
         user = User.query.filter_by(id=userID).first()
-        if user is None:
-                res = {'error': "User Does Not Exist"} 
-                statuscode = 400
-        else:   
-                statuscode = 200
-                if radius is None:
-                        res = __getAllPosts__()
-                        return json.dumps(res), statuscode
-                else:
-                        radius = float(radius) * 1609.34 #Converting to meters
-                        nearbyPosts = Post.query.filter(and_(func.ST_DistanceSphere(Post.point, user.point) <= radius, 
-                        Post.userID != userID))
-                        random.shuffle(nearbyPosts)
-                        res = {'data': [post.serialize() for post in nearbyPosts]}
-                        return json.dumps(res), statuscode
+        query = Post.query.filter(Post.userID != userID)
+        if not minPrice is None:
+                minPrice = int(minPrice)
+                query.filter(Post.price >= minPrice)
+        if not maxPrice is None:
+                maxPrice = int(maxPrice)
+                query.filter(Post.price <= maxPrice)
+        if not radius is None:
+                radius = float(radius) * 1609.34 #Converting to meters
+                query.filter(func.ST_DistanceSphere(Post.point, user.point) <= radius) 
+        if not clothingTypes is None:
+                clothingTypes = json.loads(clothingTypes)
+                for ct in clothingTypes:
+                        query.filter(Post.clothingType == ct)
+        if not categories is None:
+                categories = json.loads(categories)
+                for cat in categories:
+                        query.filter(Post.category == categories)
+        posts = query.all()
+        random.shuffle(posts)
+        res = {'data': [post.serialize() for post in posts]}
+        return json.dumps(res), 200
 
-def __getAllPosts__():
-     allPosts = Post.query.all() 
-     random.shuffle(allPosts)
-     res = {'data': [post.serialize() for post in allPosts]}
-     return res
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
