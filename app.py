@@ -16,7 +16,7 @@ app.register_blueprint(userAPI)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = True
+app.config['SQLALCHEMY_ECHO'] = False
 app.config['JWT_SECRET_KEY'] = config.SECRET_KEY
 jwt = JWTManager(app)
 
@@ -94,6 +94,7 @@ def createPost(): #TODO: ADD Custom Point When Post Is Created
 @jwt_required
 def getPosts():
         #NOTE: POSTGIS COORDS ARE (LONG, LAT)
+        #TODO: MAKE THIS WORK
         minPrice = request.args.get('minPrice')
         maxPrice = request.args.get('maxPrice')
         radius = request.args.get('radius')
@@ -101,24 +102,25 @@ def getPosts():
         categories = request.args.get('category')
         userID = get_jwt_identity()
         user = User.query.filter_by(id=userID).first()
-        query = Post.query.filter(Post.userID != userID)
+        filters = [Post.id != User.id]
         if not minPrice is None:
                 minPrice = int(minPrice)
-                query.filter(Post.price >= minPrice)
+                fitlers.append(Post.price >= minPrice)
         if not maxPrice is None:
                 maxPrice = int(maxPrice)
-                query.filter(Post.price <= maxPrice)
+                filters.append(Post.price <= maxPrice)
         if not radius is None:
                 radius = float(radius) * 1609.34 #Converting to meters
-                query.filter(func.ST_DistanceSphere(Post.point, user.point) <= radius) 
+                filters.append(func.ST_DistanceSphere(Post.point, user.point) <= radius)
         if not clothingTypes is None:
                 clothingTypes = json.loads(clothingTypes)
                 for ct in clothingTypes:
-                        query.filter(Post.clothingType == ct)
+                        filters.append(Post.clothingType == ct)
         if not categories is None:
                 categories = json.loads(categories)
                 for cat in categories:
-                        query.filter(Post.category == categories)
+                        filters.append(Post.category == categories)
+        query = Post.query.filter(*filters)
         posts = query.all()
         random.shuffle(posts)
         res = {'data': [post.serialize() for post in posts]}
