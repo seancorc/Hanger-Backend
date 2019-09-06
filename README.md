@@ -186,7 +186,7 @@
 }	
 ```
 
-#### GET /api/user/posts/
+#### GET /api/user/posts/{optional URL Parameters: 'minPrice', 'maxPrice', 'radius', 'types, 'categories'}
 *Headers*: 
 ```json
 {
