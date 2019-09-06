@@ -105,7 +105,7 @@ def getPosts():
         filters = [Post.id != User.id]
         if not minPrice is None:
                 minPrice = int(minPrice)
-                fitlers.append(Post.price >= minPrice)
+                filters.append(Post.price >= minPrice)
         if not maxPrice is None:
                 maxPrice = int(maxPrice)
                 filters.append(Post.price <= maxPrice)
