@@ -1,5 +1,5 @@
 ## AWS Architecture
-<img src="https://github.com/seancorc/Hanger-Backend/blob/master/AWSDiagram.png" height="1000" width="2500">
+<img src="https://github.com/seancorc/Hanger-Backend/blob/master/AWSDiagram.png" height="900" width="900">
 
 ## API Spec
 
