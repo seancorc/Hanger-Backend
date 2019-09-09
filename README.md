@@ -1,3 +1,6 @@
+## AWS Architecture
+![](AWSDiagram.png)
+
 ## API Spec
 
 ### User:
