@@ -1,5 +1,5 @@
 ## AWS Architecture
-![](AWSDiagram.png)
+<img src="https://github.com/seancorc/Hanger-Backend/blob/master/AWSDiagram.png" width="450">
 
 ## API Spec
 
