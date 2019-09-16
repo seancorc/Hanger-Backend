@@ -94,12 +94,11 @@ def createPost(): #TODO: ADD Custom Point When Post Is Created
 @jwt_required
 def getPosts():
         #NOTE: POSTGIS COORDS ARE (LONG, LAT)
-        #TODO: MAKE THIS WORK
         minPrice = request.args.get('minPrice')
         maxPrice = request.args.get('maxPrice')
         radius = request.args.get('radius')
-        clothingTypes = request.args.get('type')
-        categories = request.args.get('category')
+        clothingTypes = request.args.get('types')
+        categories = request.args.get('categories')
         userID = get_jwt_identity()
         user = User.query.filter_by(id=userID).first()
         filters = [Post.id != User.id]
