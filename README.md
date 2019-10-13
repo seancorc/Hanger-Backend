@@ -1,5 +1,7 @@
-## AWS Architecture
-<img src="https://github.com/seancorc/Hanger-Backend/blob/master/AWSDiagram.png" width="1500">
+<!---
+## Cloud Architecture
+<img src="https://github.com/seancorc/Hanger-Backend/blob/master/CloudDiagram.png" width="1500">
+-->
 
 ## API Spec
 
