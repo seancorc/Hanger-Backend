@@ -62,7 +62,7 @@ def login():
     return json.dumps(res), statuscode
 
 
-@userAPI.route("/api/user/location/", methods=["PUT"])
+@userAPI.route("/api/user/location/", methods=["PATCH"])
 @jwt_required
 def updateUserLocation():
     statuscode = 500
@@ -84,7 +84,7 @@ def updateUserLocation():
     return json.dumps(res), statuscode
 
 
-@userAPI.route("/api/user/updateinfo/", methods=["PUT"])
+@userAPI.route("/api/user/updateinfo/", methods=["PATCH"])
 @jwt_required
 def updateUserInfo():
     statuscode = 500
@@ -120,7 +120,7 @@ def updateUserInfo():
     return json.dumps(res), statuscode
 
 
-@userAPI.route("/api/user/updatepassword/", methods=["PUT"])
+@userAPI.route("/api/user/updatepassword/", methods=["PATCH"])
 @jwt_required
 def updatePassword():
     statuscode = 500
@@ -144,7 +144,7 @@ def updatePassword():
     return json.dumps(res), statuscode
 
 
-@userAPI.route("/api/user/profilepicture/", methods=["PUT"])
+@userAPI.route("/api/user/profilepicture/", methods=["PATCH"])
 @jwt_required
 def modifyProfilepicture():
     statuscode = 500
